@@ -13,8 +13,7 @@ func DockerIsConnected(t *testing.T) bool {
 	// We have docker on travis so we should try to test
 	if testutil.IsTravis() {
 		// Travis supports Docker on Linux only; MacOS setup does not support Docker
-		t.Fatalf("in travis: %s", runtime.GOOS)
-		return runtime.GOOS == "linux"
+		return runtime.GOOS == "linux" || runtime.GOOS == "windows"
 	}
 
 	client, err := docker.NewClientFromEnv()
