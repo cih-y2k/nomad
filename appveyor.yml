@@ -35,7 +35,8 @@ build_script:
   - cmd: |
       set PATH=%GOPATH%/bin;%PATH%
       mkdir -p $GOPATH\bin
-      go build -o $GOPATH\bin\nomad
+      go build -o %GOPATH%\bin\nomad.exe
+      go install
 test_script:
   # only test docker driver tests for now
   - cmd: gotestsum -f short-verbose --junitfile results.xml github.com/hashicorp/nomad/drivers/docker
