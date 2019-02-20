@@ -18,6 +18,7 @@ func DockerIsConnected(t *testing.T) bool {
 
 	client, err := docker.NewClientFromEnv()
 	if err != nil {
+		t.Logf("Failed to create a docker client: %s", err)
 		return false
 	}
 
