@@ -39,7 +39,9 @@ build_script:
       go install
 test_script:
   # only test docker driver tests for now
-  - cmd: gotestsum -f short-verbose --junitfile results.xml github.com/hashicorp/nomad/drivers/docker
+  - cmd:
+      gotestsum --junitfile results.xml
+           github.com/hashicorp/nomad/drivers/docker
 # on_finish:
 #   - ps: |
 #       Push-AppveyorArtifact (Resolve-Path .\results.xml)
