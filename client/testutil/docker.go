@@ -13,12 +13,13 @@ func DockerIsConnected(t *testing.T) bool {
 	// We have docker on travis so we should try to test
 	if testutil.IsTravis() {
 		// Travis supports Docker on Linux only; MacOS setup does not support Docker
+		t.Fatalf("in travis: %s", runtime.GOOS)
 		return runtime.GOOS == "linux"
 	}
 
 	client, err := docker.NewClientFromEnv()
 	if err != nil {
-		t.Logf("Failed to create a docker client: %s", err)
+		t.Fatalf("Failed to create a docker client: %s", err)
 		return false
 	}
 
@@ -26,7 +27,7 @@ func DockerIsConnected(t *testing.T) bool {
 	// like call Version() on it.
 	env, err := client.Version()
 	if err != nil {
-		t.Logf("Failed to connect to docker daemon: %s", err)
+		t.Fatalf("Failed to connect to docker daemon: %s", err)
 		return false
 	}
 
@@ -37,6 +38,6 @@ func DockerIsConnected(t *testing.T) bool {
 // DockerCompatible skips tests if docker is not present
 func DockerCompatible(t *testing.T) {
 	if !DockerIsConnected(t) {
-		t.Skip("Docker not connected")
+		t.Fatal("Docker not connected")
 	}
 }
