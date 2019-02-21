@@ -391,10 +391,9 @@ func (tr *TaskRunner) Run() {
 	go tr.handleUpdates()
 
 MAIN:
-	for {
+	for !tr.Alloc().TerminalStatus() {
 		select {
 		case <-tr.killCtx.Done():
-			tr.handleKill()
 			break MAIN
 		case <-tr.shutdownCtx.Done():
 			// TaskRunner was told to exit immediately
@@ -411,7 +410,6 @@ MAIN:
 
 		select {
 		case <-tr.killCtx.Done():
-			tr.handleKill()
 			break MAIN
 		case <-tr.shutdownCtx.Done():
 			// TaskRunner was told to exit immediately
@@ -483,13 +481,18 @@ MAIN:
 		case <-time.After(restartDelay):
 		case <-tr.killCtx.Done():
 			tr.logger.Trace("task killed between restarts", "delay", restartDelay)
-			tr.handleKill()
 			break MAIN
 		case <-tr.shutdownCtx.Done():
 			// TaskRunner was told to exit immediately
+			tr.logger.Trace("gracefully shutting down during restart delay")
 			return
 		}
 	}
+
+	//TODO Is this safe to call whenever MAIN exits? It used to *not* be
+	//     called when restarts ran out.
+	// Ensure handle is cleaned up
+	tr.handleKill()
 
 	// Mark the task as dead
 	tr.UpdateState(structs.TaskStateDead, nil)
@@ -707,8 +710,8 @@ func (tr *TaskRunner) initDriver() error {
 }
 
 // handleKill is used to handle the a request to kill a task. It will return
-//// the handle exit result if one is available and store any error in the task
-//// runner killErr value.
+// the handle exit result if one is available and store any error in the task
+// runner killErr value.
 func (tr *TaskRunner) handleKill() *drivers.ExitResult {
 	// Run the pre killing hooks
 	tr.preKill()
@@ -1037,9 +1040,9 @@ func (tr *TaskRunner) WaitCh() <-chan struct{} {
 }
 
 // Update the running allocation with a new version received from the server.
-// Calls Update hooks asynchronously with Run().
+// Calls Update hooks asynchronously with Run.
 //
-// This method is safe for calling concurrently with Run() and does not modify
+// This method is safe for calling concurrently with Run and does not modify
 // the passed in allocation.
 func (tr *TaskRunner) Update(update *structs.Allocation) {
 	task := update.LookupTask(tr.taskName)
